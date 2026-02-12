@@ -52,12 +52,11 @@
             border: 1px solid #bdc1c6;
             border-radius: 4px;
             outline: none;
-            transition: border 0.1s;
+            transition: all 0.2s;
         }
 
         .inputs input:focus {
             border: 2px solid #1a73e8;
-            padding: -1px; /* Adjusts for border thickness */
         }
 
         .status {
@@ -72,19 +71,21 @@
             visibility: visible;
         }
 
-        /* Gmail-style blue button look (optional, for aesthetics) */
-        .footer-text {
-            margin-top: 20px;
-            color: #1a73e8;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: 500;
+        /* Shake animation for wrong code */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .shake {
+            animation: shake 0.2s ease-in-out 0s 2;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
+    <div class="card" id="main-card">
         <h2>Verifiera</h2>
         <p class="instruction">Hitta de fyra siffrorna på robotarna</p>
         
@@ -96,19 +97,18 @@
         </div>
 
         <div class="status" id="status-msg">Verifierad ✓</div>
-        <div class="footer-text">Behöver du hjälp?</div>
     </div>
 
     <script>
         const inputs = document.querySelectorAll('#otp-inputs input');
         const statusMsg = document.getElementById('status-msg');
+        const card = document.getElementById('main-card');
+        const correctCode = "1983";
 
         inputs.forEach((input, index) => {
-            // Typing logic
             input.addEventListener('input', (e) => {
-                if (e.inputType === "deleteContentBackward") return;
-
                 const val = e.target.value;
+                
                 // Allow only numbers
                 if (!/^\d+$/.test(val)) {
                     e.target.value = "";
@@ -119,10 +119,9 @@
                     inputs[index + 1].focus();
                 }
 
-                checkCompletion();
+                checkCode();
             });
 
-            // Backspace logic
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Backspace' && !e.target.value && index > 0) {
                     inputs[index - 1].focus();
@@ -130,14 +129,27 @@
             });
         });
 
-        function checkCompletion() {
-            const code = Array.from(inputs).map(i => i.value).join('');
-            if (code.length === 4) {
-                statusMsg.classList.add('visible');
-                // Lock inputs
-                inputs.forEach(i => i.disabled = true);
-            } else {
-                statusMsg.classList.remove('visible');
+        function checkCode() {
+            const enteredCode = Array.from(inputs).map(i => i.value).join('');
+            
+            if (enteredCode.length === 4) {
+                if (enteredCode === correctCode) {
+                    // Success logic
+                    statusMsg.classList.add('visible');
+                    inputs.forEach(i => {
+                        i.disabled = true;
+                        i.style.borderColor = "#1e8e3e";
+                        i.style.color = "#1e8e3e";
+                    });
+                } else {
+                    // Fail logic: Shake and clear
+                    card.classList.add('shake');
+                    setTimeout(() => {
+                        card.classList.remove('shake');
+                        inputs.forEach(i => i.value = "");
+                        inputs[0].focus();
+                    }, 500);
+                }
             }
         }
     </script>
