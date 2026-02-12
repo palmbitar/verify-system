@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Code</title>
+    <style>
+        /* CSS: Makes it look nice */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 320px;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .inputs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .inputs input {
+            width: 50px;
+            height: 60px;
+            font-size: 24px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.2s;
+            /* Ensures number pad opens on mobile */
+            inputmode: numeric; 
+        }
+
+        /* Highlight the box when you click inside */
+        .inputs input:focus {
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+        }
+
+        /* The styles for the Verified message */
+        .message {
+            font-weight: bold;
+            font-size: 1.1rem;
+            height: 24px; /* Keeps layout stable */
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .message.success {
+            color: #1e8e3e; /* Google Green */
+            opacity: 1;
+        }
+        
+        .message.error {
+            color: #d93025; /* Red */
+            opacity: 1;
+        }
+
+        /* Disable inputs after verification */
+        .inputs.disabled input {
+            background-color: #f1f3f4;
+            color: #1e8e3e;
+            border-color: #1e8e3e;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Verify your account</h2>
+        <p>Enter the 4-digit code sent to your device.</p>
+        
+        <div class="inputs" id="otp-inputs">
+            <input type="text" maxlength="1" pattern="[0-9]" />
+            <input type="text" maxlength="1" pattern="[0-9]" />
+            <input type="text" maxlength="1" pattern="[0-9]" />
+            <input type="text" maxlength="1" pattern="[0-9]" />
+        </div>
+
+        <div class="message" id="status-msg">Verified!</div>
+    </div>
+
+    <script>
+        // JavaScript: Makes it work
+        const inputs = document.querySelectorAll('#otp-inputs input');
+        const statusMsg = document.getElementById('status-msg');
+        const inputContainer = document.getElementById('otp-inputs');
+
+        inputs.forEach((input, index) => {
+            // Handle typing numbers
+            input.addEventListener('input', (e) => {
+                const value = e.target.value;
+
+                // Ensure only numbers are typed
+                if (isNaN(value)) {
+                    e.target.value = "";
+                    return;
+                }
+
+                // If a number is entered, move to the next box
+                if (value !== "") {
+                    if (index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    } else {
+                        // If it's the last box, check verification
+                        verifyOTP();
+                    }
+                }
+            });
+
+            // Handle Backspace (deleting)
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace') {
+                    // If current box is empty, move back to previous box
+                    if (input.value === "" && index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                    statusMsg.classList.remove('success'); // Hide verified message if editing
+                }
+            });
+            
+            // Handle Paste (e.g., pasting "1234")
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasteData = e.clipboardData.getData('text');
+                // Split paste data into array
+                const digits = pasteData.split('').filter(char => !isNaN(char)); 
+                
+                // Fill inputs
+                inputs.forEach((inp, i) => {
+                    if (digits[i]) inp.value = digits[i];
+                });
+                
+                // Trigger verification if we have enough digits
+                if (digits.length >= 4) verifyOTP();
+            });
+        });
+
+        function verifyOTP() {
+            // Combine all values
+            let code = "";
+            inputs.forEach(input => code += input.value);
+
+            // Simple check: If length is 4, show Verified
+            if (code.length === 4) {
+                // You can change "1234" to a specific correct code if you want
+                // For now, it accepts any 4 numbers
+                statusMsg.textContent = "Verified ✓";
+                statusMsg.classList.add('success');
+                inputContainer.classList.add('disabled');
+                
+                // Optional: remove focus to show we are done
+                document.activeElement.blur();
+            }
+        }
+    </script>
+</body>
+</html>
