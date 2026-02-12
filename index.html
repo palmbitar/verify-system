@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifiering</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f9fa;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            border: 1px solid #dadce0;
+            text-align: center;
+            width: 350px;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 400;
+            margin-bottom: 8px;
+            color: #202124;
+        }
+
+        .instruction {
+            color: #3c4043;
+            margin-bottom: 24px;
+            font-size: 16px;
+        }
+
+        .inputs {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .inputs input {
+            width: 45px;
+            height: 55px;
+            font-size: 20px;
+            text-align: center;
+            border: 1px solid #bdc1c6;
+            border-radius: 4px;
+            outline: none;
+            transition: border 0.1s;
+        }
+
+        .inputs input:focus {
+            border: 2px solid #1a73e8;
+            padding: -1px; /* Adjusts for border thickness */
+        }
+
+        .status {
+            font-weight: 500;
+            font-size: 14px;
+            min-height: 20px;
+            color: #1e8e3e;
+            visibility: hidden;
+        }
+
+        .status.visible {
+            visibility: visible;
+        }
+
+        /* Gmail-style blue button look (optional, for aesthetics) */
+        .footer-text {
+            margin-top: 20px;
+            color: #1a73e8;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Verifiera</h2>
+        <p class="instruction">Hitta de fyra siffrorna på robotarna</p>
+        
+        <div class="inputs" id="otp-inputs">
+            <input type="text" maxlength="1" inputmode="numeric">
+            <input type="text" maxlength="1" inputmode="numeric">
+            <input type="text" maxlength="1" inputmode="numeric">
+            <input type="text" maxlength="1" inputmode="numeric">
+        </div>
+
+        <div class="status" id="status-msg">Verifierad ✓</div>
+        <div class="footer-text">Behöver du hjälp?</div>
+    </div>
+
+    <script>
+        const inputs = document.querySelectorAll('#otp-inputs input');
+        const statusMsg = document.getElementById('status-msg');
+
+        inputs.forEach((input, index) => {
+            // Typing logic
+            input.addEventListener('input', (e) => {
+                if (e.inputType === "deleteContentBackward") return;
+
+                const val = e.target.value;
+                // Allow only numbers
+                if (!/^\d+$/.test(val)) {
+                    e.target.value = "";
+                    return;
+                }
+
+                if (val && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+
+                checkCompletion();
+            });
+
+            // Backspace logic
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+
+        function checkCompletion() {
+            const code = Array.from(inputs).map(i => i.value).join('');
+            if (code.length === 4) {
+                statusMsg.classList.add('visible');
+                // Lock inputs
+                inputs.forEach(i => i.disabled = true);
+            } else {
+                statusMsg.classList.remove('visible');
+            }
+        }
+    </script>
+</body>
+</html>
